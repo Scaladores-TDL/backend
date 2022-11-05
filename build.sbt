@@ -6,3 +6,13 @@ lazy val root = (project in file("."))
   .settings(
     name := "backend"
   )
+
+val AkkaVersion = "2.6.8"
+val AkkaHttpVersion = "10.2.10"
+libraryDependencies ++= Seq(
+  "com.typesafe.akka" %% "akka-actor-typed" % AkkaVersion,
+  "com.typesafe.akka" %% "akka-stream" % AkkaVersion,
+  "com.typesafe.akka" %% "akka-http" % AkkaHttpVersion,
+  "org.mongodb.scala" %% "mongo-scala-driver" % "4.7.0",
+  "org.slf4j" % "slf4j-simple" % "1.6.4"
+)
