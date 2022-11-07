@@ -1,4 +1,3 @@
-import akka.Done
 import akka.actor.typed.ActorSystem
 import akka.actor.typed.scaladsl.Behaviors
 import akka.http.scaladsl.Http
@@ -7,9 +6,14 @@ import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import spray.json.DefaultJsonProtocol._
 import ch.megard.akka.http.cors.scaladsl.CorsDirectives._
+import org.mongodb.scala.{MongoClient, MongoCollection}
+import org.mongodb.scala.bson.codecs.Macros._
+import org.bson.codecs.configuration.CodecRegistries.{fromProviders, fromRegistries}
+import org.mongodb.scala.model.Filters
+import org.mongodb.scala.result.DeleteResult
 
-import scala.concurrent.Future
 import scala.io.StdIn
+import scala.util.{Failure, Success}
 
 
 object Main {
@@ -17,55 +21,47 @@ object Main {
   // needed for the future flatMap/onComplete in the end
   implicit val executionContext = system.executionContext
 
-  //fake databse
-  var prodes: List[Prode] = List(Prode(1,"Julian"))
-
   // domain model
-  final case class Prode(id: Long, user: String)
+  final case class Match(team1: String, team2: String, result: String)
+  final case class Prode(id: Long, user: String, matches: List[Match])
 
   // formats for unmarshalling and marshalling
-  implicit val prodeFormat = jsonFormat2(Prode)
+  implicit val matchFormat = jsonFormat3(Match)
+  implicit val prodeFormat = jsonFormat3(Prode)
 
-  // (fake) async database query api
-  def findAll(): Future[List[Prode]] = Future {
-    prodes
-  }
-  def findProde(prodeId: Long): Future[Option[Prode]] = Future {
-    prodes.find(p => p.id == prodeId)
-  }
-  def createProde(prode: Prode): Future[Done] = {
-    prodes = prodes :+ prode
-    Future { Done }
-  }
-  def deleteProde(prodeId: Long): Future[Done] = Future {
-    prodes = prodes.filter(p => p.id != prodeId)
-    Done
-  }
 
   def main(args: Array[String]): Unit = {
 
-    val uri: String = "mongodb+srv://username:password@cluster0.eyzrrjg.mongodb.net/?retryWrites=true&w=majority"
-    System.setProperty("org.mongodb.async.type", "netty")
-    //val client: MongoClient = MongoClient(uri)
+    val uri: String = "mongodb://localhost:27017"
+    val client: MongoClient = MongoClient(uri)
+    val codecRegistry = fromRegistries(fromProviders(classOf[Prode], classOf[Match]), MongoClient.DEFAULT_CODEC_REGISTRY)
+
+    val database = client.getDatabase("prodes").withCodecRegistry(codecRegistry)
+    val prodesCollection: MongoCollection[Prode] = database.getCollection("prodes")
+
+    // insert a document
+    val prode: Prode = Prode(1,"Julian", List(Match("ARG", "BRA", "1")))
+
 
     val route = cors() {
       concat(
         get {
           pathPrefix("prode") {
-            //Return all prodes
-            val prodes = findAll()
-            complete(prodes)
+            val f = prodesCollection.find().toFuture()
+            onComplete(f) {
+              case Success(prodes) => complete(prodes)
+              case Failure(e) =>  complete(StatusCodes.InternalServerError)
+            }
           }
         },
         get {
           pathPrefix("prode" / LongNumber) {
             prodeId => {
               println(prodeId)
-              val prode: Future[Option[Prode]] = findProde(prodeId)
-
-              onSuccess(prode) {
-                case Some(prode) => complete(prode)
-                case None => complete(StatusCodes.NotFound)
+              val f = prodesCollection.find(Filters.eq("id", prodeId)).toFuture()
+              onComplete(f) {
+                case Success(prode) => complete(prode)
+                case Failure(e) =>  complete(StatusCodes.InternalServerError)
               }
             }
           }
@@ -74,9 +70,10 @@ object Main {
           pathPrefix("prode") {
             entity(as[Prode]) {
               prode => {
-                val saved: Future[Done] = createProde(prode)
-                onSuccess(saved) { _ => // we are not interested in the result value `Done` but only in the fact that it was successful
-                  complete("prode created")
+                val f = prodesCollection.insertOne(prode).toFuture()
+                onComplete(f) {
+                  case Success(value) => complete("prode created succesfully")
+                  case Failure(e) =>  complete(StatusCodes.InternalServerError)
                 }
               }
             }
@@ -85,7 +82,19 @@ object Main {
         delete {
           pathPrefix("prode" / LongNumber) {
             prodeId => {
-              complete(deleteProde(prodeId))
+              val f = prodesCollection.deleteOne(Filters.eq("id", prodeId)).toFuture()
+              onComplete(f) {
+                case Success(result: DeleteResult) => {
+                  println(result)
+                  if (result.getDeletedCount == 0) {
+                    complete(StatusCodes.NotFound)
+                  } else {
+                    complete("delete succesfully")
+
+                  }
+                }
+                case Failure(e) =>  complete(StatusCodes.InternalServerError)
+              }
             }
           }
         }
