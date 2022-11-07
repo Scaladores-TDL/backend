@@ -6,6 +6,7 @@ import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import spray.json.DefaultJsonProtocol._
+import ch.megard.akka.http.cors.scaladsl.CorsDirectives._
 
 import scala.concurrent.Future
 import scala.io.StdIn
@@ -47,48 +48,49 @@ object Main {
     System.setProperty("org.mongodb.async.type", "netty")
     //val client: MongoClient = MongoClient(uri)
 
-    val route = concat(
-      get {
-        pathPrefix("prode") {
-          //Return all prodes
-          val prodes = findAll()
-          complete(prodes)
-        }
-      },
-      get {
-        pathPrefix("prode" / LongNumber) {
-          prodeId => {
-            println(prodeId)
-            val prode: Future[Option[Prode]] = findProde(prodeId)
-
-            onSuccess(prode) {
-              case Some(prode) => complete(prode)
-              case None => complete(StatusCodes.NotFound)
-            }
+    val route = cors() {
+      concat(
+        get {
+          pathPrefix("prode") {
+            //Return all prodes
+            val prodes = findAll()
+            complete(prodes)
           }
-        }
-      },
-      post {
-        pathPrefix("prode") {
-          entity(as[Prode]) {
-            prode => {
-              val saved: Future[Done] = createProde(prode)
-              onSuccess(saved) { _ => // we are not interested in the result value `Done` but only in the fact that it was successful
-                complete("prode created")
+        },
+        get {
+          pathPrefix("prode" / LongNumber) {
+            prodeId => {
+              println(prodeId)
+              val prode: Future[Option[Prode]] = findProde(prodeId)
+
+              onSuccess(prode) {
+                case Some(prode) => complete(prode)
+                case None => complete(StatusCodes.NotFound)
               }
             }
           }
-        }
-      },
-      delete {
-        pathPrefix("prode" / LongNumber) {
-          prodeId => {
-            complete(deleteProde(prodeId))
+        },
+        post {
+          pathPrefix("prode") {
+            entity(as[Prode]) {
+              prode => {
+                val saved: Future[Done] = createProde(prode)
+                onSuccess(saved) { _ => // we are not interested in the result value `Done` but only in the fact that it was successful
+                  complete("prode created")
+                }
+              }
+            }
+          }
+        },
+        delete {
+          pathPrefix("prode" / LongNumber) {
+            prodeId => {
+              complete(deleteProde(prodeId))
+            }
           }
         }
-      }
-
-    )
+      )
+    }
     val bindingFuture = Http().newServerAt("localhost", 8080).bind(route)
 
     println(s"Server now online. Please navigate to http://localhost:8080/hello\nPress RETURN to stop...")
