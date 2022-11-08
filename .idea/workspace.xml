@@ -5,6 +5,12 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="1d3dc2ac-d512-48bd-86e9-10ac489bc880" name="Changes" comment="initial setup">
+      <change afterPath="$PROJECT_DIR$/src/main/scala/Group.scala" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/scala/GroupConsumer.scala" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/scala/GroupService.scala" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/scala/Prode.scala" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/scala/ProdeConsumer.scala" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/scala/ProdeService.scala" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/scala/Main.scala" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/scala/Main.scala" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/target/scala-2.13/classes/Main$.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/scala-2.13/classes/Main$.class" afterDir="false" />
@@ -33,6 +39,9 @@
     <option name="version" value="2" />
   </component>
   <component name="ProjectId" id="2H8GQCkzs7C4BJgkx7GFAXzYYXa" />
+  <component name="ProjectLevelVcsManager">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
