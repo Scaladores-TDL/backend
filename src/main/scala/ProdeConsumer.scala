@@ -63,8 +63,11 @@ class ProdeConsumer(val database: MongoDatabase) {
       (pathPrefix("prode" / "simulate_game") & post) {
         entity(as[Game]) {
           game => {
-            println("hola")
-            prodeService.simulateGame(game)
+            val f = prodeService.simulateGame(game)
+            onComplete(f) {
+              case Success(_) => complete("Simulation completed succesfully")
+              case Failure(e) =>  complete(StatusCodes.InternalServerError)
+            }
           }
         }
       }

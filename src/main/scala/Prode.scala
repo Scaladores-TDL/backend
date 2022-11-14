@@ -1,4 +1,3 @@
-
 final case class Game(team1: String, team2: String, result: Long)
 
 final case class CreateProdeRequest(id: Long, user: String, groupId: Long, matches: List[Game]) {
