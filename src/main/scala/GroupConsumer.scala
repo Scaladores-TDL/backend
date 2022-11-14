@@ -8,9 +8,7 @@ import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import spray.json.DefaultJsonProtocol._
 import spray.json.DefaultJsonProtocol.{jsonFormat2}
 import akka.http.scaladsl.server.Directives._
-
 import scala.util.{Failure, Success}
-
 
 class GroupConsumer(val database: MongoDatabase) {
   val groupsCollection: MongoCollection[Group] = database.getCollection("groups")
@@ -19,9 +17,10 @@ class GroupConsumer(val database: MongoDatabase) {
 
   // formats for unmarshalling and marshalling
   implicit val createGroupFormat = jsonFormat2(CrateGroupRequest)
+  implicit val groupFormat = jsonFormat3(Group)
   implicit val matchFormat = jsonFormat3(Game)
   implicit val prodeFormat = jsonFormat5(Prode)
-  implicit val groupFormat = jsonFormat3(Group)
+
 
   val route = cors() {
     concat(
@@ -59,8 +58,7 @@ class GroupConsumer(val database: MongoDatabase) {
       },
       (pathPrefix("group" / LongNumber) & get) {
         groupId => {
-          groupService.getGroupById(groupId)
-          complete("Done")
+          complete(groupService.getGroupById(groupId))
         }
       },
       (pathPrefix("group") & get) {

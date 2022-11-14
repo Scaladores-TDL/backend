@@ -1,10 +1,10 @@
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Directives.{complete, onComplete}
 import org.mongodb.scala.MongoCollection
-import org.mongodb.scala.model.{Filters, Updates}
+import org.mongodb.scala.model.{Aggregates, Filters, Updates}
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.{Future}
+import scala.concurrent.Future
 import scala.util.{Failure, Success}
 
 class GroupService(val groupCollection: MongoCollection[Group], val prodeCollection: MongoCollection[Prode]) {
@@ -22,15 +22,12 @@ class GroupService(val groupCollection: MongoCollection[Group], val prodeCollect
     groupCollection.deleteOne(Filters.eq("id", groupId)).toFuture()
   }
 
-  def getGroupById(id: Long): Unit = {
+  def getGroupById(id: Long): Future[Seq[Prode]] = {
     val f = prodeCollection.find(Filters.eq("groupId", id)).toFuture()
 
-    f.onComplete {
-      case Success(prodes: Seq[Prode]) => {
-        val sorted = prodes.sortWith(_.points > _.points)
-        println(sorted)
-        //Devolver el grupo con sus prodes ordenados
-      }
-    }
+    f.map(prodes => {
+      val sorted = prodes.sortWith(_.points > _.points)
+      sorted
+    })
   }
 }

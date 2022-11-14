@@ -26,15 +26,11 @@ class ProdeService(val prodesCollection: MongoCollection[Prode]) {
 
   def simulateGame(game: Game) = {
     val f = this.find
-    onComplete(f) {
-      case Success(prodes: Seq[Prode]) => {
-        prodes.foreach(prode => {
-          val prodeUpdated = prode.simulateGame(game)
-          prodesCollection.replaceOne(Filters.eq("id", prodeUpdated.id), prodeUpdated).subscribe((updateResult: UpdateResult) => println(updateResult))
-        })
-        complete("Simulation completed succesfully")
-      }
-      case Failure(e) =>  complete(StatusCodes.InternalServerError)
-    }
+    f.map(prodes => {
+      prodes.foreach(prode => {
+        val prodeUpdated = prode.simulateGame(game)
+        prodesCollection.replaceOne(Filters.eq("id", prodeUpdated.id), prodeUpdated).subscribe((updateResult: UpdateResult) => println(updateResult))
+      })
+    })
   }
 }
