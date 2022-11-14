@@ -14,27 +14,22 @@ import scala.util.{Failure, Success}
 
 class GroupConsumer(val database: MongoDatabase) {
   val groupsCollection: MongoCollection[Group] = database.getCollection("groups")
-  val groupService = new GroupService(groupsCollection)
+  val prodesCollection: MongoCollection[Prode] = database.getCollection("prodes")
+  val groupService = new GroupService(groupsCollection, prodesCollection)
 
   // formats for unmarshalling and marshalling
-  implicit val groupFormat = jsonFormat2(Group)
+  implicit val createGroupFormat = jsonFormat2(CrateGroupRequest)
+  implicit val matchFormat = jsonFormat3(Game)
+  implicit val prodeFormat = jsonFormat5(Prode)
+  implicit val groupFormat = jsonFormat3(Group)
 
   val route = cors() {
     concat(
-      get {
-        pathPrefix("group") {
-          val f = groupService.find
-          onComplete(f) {
-            case Success(groups) => complete(groups)
-            case Failure(e) =>  complete(StatusCodes.InternalServerError)
-          }
-        }
-      },
       post {
         pathPrefix("group") {
-          entity(as[Group]) {
-            prode => {
-              val f = groupService.create(prode)
+          entity(as[CrateGroupRequest]) {
+            newGroup => {
+              val f = groupService.create(newGroup)
               onComplete(f) {
                 case Success(value) => complete("group created succesfully")
                 case Failure(e) =>  complete(StatusCodes.InternalServerError)
@@ -61,7 +56,16 @@ class GroupConsumer(val database: MongoDatabase) {
             }
           }
         }
-      }
+      },
+      (pathPrefix("group" / LongNumber) & get) {
+        groupId => {
+          groupService.getGroupById(groupId)
+          complete("Done")
+        }
+      },
+      (pathPrefix("group") & get) {
+        complete(groupService.getGroups)
+      },
     )
   }
 

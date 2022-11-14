@@ -1,11 +1,12 @@
 
 final case class Game(team1: String, team2: String, result: Long)
 
-final case class CreateProdeRequest(id: Long, user: String, matches: List[Game]) {
+final case class CreateProdeRequest(id: Long, user: String, groupId: Long, matches: List[Game]) {
   require(!user.isEmpty, "user name must not be empty")
 }
 
-final case class Prode(id: Long, user: String, matches: List[Game], points: Long){
+final case class Prode(id: Long, user: String, groupId: Long, matches: List[Game], points: Long){
+  require(!user.isEmpty)
   require(points >= 0)
 
   def simulateGame(game: Game): Prode = {
