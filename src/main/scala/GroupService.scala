@@ -5,6 +5,7 @@ import org.mongodb.scala.model.{Aggregates, Filters, Updates}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+
 import scala.util.{Failure, Success}
 
 class GroupService(val groupCollection: MongoCollection[Group], val prodeCollection: MongoCollection[Prode]) {

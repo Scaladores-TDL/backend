@@ -8,7 +8,9 @@ import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import spray.json.DefaultJsonProtocol._
 import spray.json.DefaultJsonProtocol.{jsonFormat2}
 import akka.http.scaladsl.server.Directives._
+
 import scala.util.{Failure, Success}
+
 
 class GroupConsumer(val database: MongoDatabase) {
   val groupsCollection: MongoCollection[Group] = database.getCollection("groups")
