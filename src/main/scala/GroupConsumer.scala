@@ -6,8 +6,11 @@ import org.mongodb.scala.{MongoCollection, MongoDatabase}
 import org.mongodb.scala.result.DeleteResult
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import spray.json.DefaultJsonProtocol._
-import spray.json.DefaultJsonProtocol.{jsonFormat2}
+import spray.json.DefaultJsonProtocol.jsonFormat2
 import akka.http.scaladsl.server.Directives._
+import akka.http.scaladsl.server.Route
+import akka.http.scaladsl.server.directives.Credentials
+import pdi.jwt.{Jwt, JwtAlgorithm}
 
 import scala.util.{Failure, Success}
 
@@ -23,50 +26,61 @@ class GroupConsumer(val database: MongoDatabase) {
   implicit val matchFormat = jsonFormat3(Game)
   implicit val prodeFormat = jsonFormat5(Prode)
 
-
-  val route = cors() {
-    concat(
-      post {
-        pathPrefix("group") {
-          entity(as[CrateGroupRequest]) {
-            newGroup => {
-              val f = groupService.create(newGroup)
-              onComplete(f) {
-                case Success(value) => complete("group created succesfully")
-                case Failure(e) =>  complete(StatusCodes.InternalServerError)
-              }
-            }
-          }
-        }
-      },
-      delete {
-        pathPrefix("group" / LongNumber) {
-          groupId => {
-            val f = groupService.delete(groupId)
-            onComplete(f) {
-              case Success(result: DeleteResult) => {
-                println(result)
-                if (result.getDeletedCount == 0) {
-                  complete(StatusCodes.NotFound)
-                } else {
-                  complete("delete succesfully")
-
-                }
-              }
-              case Failure(e) =>  complete(StatusCodes.InternalServerError)
-            }
-          }
-        }
-      },
-      (pathPrefix("group" / LongNumber) & get) {
-        groupId => {
-          complete(groupService.getGroupById(groupId))
-        }
-      },
-      (pathPrefix("group") & get) {
-        complete(groupService.getGroups)
-      },
-    )
+  def myAuthentication(credentials: Credentials): Option[String] = {
+    credentials match {
+      case p @ Credentials.Provided(token) if Jwt.isValid(token,"secretKey", Seq(JwtAlgorithm.HS256)) => {
+        Some(token)
+      }
+      case _ => None
+    }
   }
 
+  val route = cors() {
+    Route.seal {
+      authenticateOAuth2(realm = "secure route", myAuthentication) { token =>
+        concat(
+          post {
+            pathPrefix("group") {
+              entity(as[CrateGroupRequest]) {
+                newGroup => {
+                  val f = groupService.create(newGroup)
+                  onComplete(f) {
+                    case Success(value) => complete("group created succesfully")
+                    case Failure(e) =>  complete(StatusCodes.InternalServerError)
+                  }
+                }
+              }
+            }
+          },
+          delete {
+            pathPrefix("group" / LongNumber) {
+              groupId => {
+                val f = groupService.delete(groupId)
+                onComplete(f) {
+                  case Success(result: DeleteResult) => {
+                    println(result)
+                    if (result.getDeletedCount == 0) {
+                      complete(StatusCodes.NotFound)
+                    } else {
+                      complete("delete succesfully")
+
+                    }
+                  }
+                  case Failure(e) =>  complete(StatusCodes.InternalServerError)
+                }
+              }
+            }
+          },
+          (pathPrefix("group" / LongNumber) & get) {
+            groupId => {
+              complete(groupService.getGroupById(groupId))
+            }
+          },
+          (pathPrefix("group") & get) {
+            complete(groupService.getGroups)
+          },
+        )
+      }
+    }
+  }
 }
