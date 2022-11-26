@@ -16,11 +16,11 @@ class ProdeService(val prodesCollection: MongoCollection[Prode]) {
     val games: List[Game] = bufferedSource.getLines().map(line => {
       println(line)
       val cols = line.split(",").map(_.trim)
-      Game(cols(0), cols(1), cols(2).toLong)
+      Game(cols(0), cols(1), cols(2).toLong, cols(3).toLong)
     }).toList
+    bufferedSource.close
     val request = CreateProdeRequest(1, "julian", 1, games)
     this.create(request)
-    bufferedSource.close
   }
 
   def find: Future[Seq[Prode]] = {

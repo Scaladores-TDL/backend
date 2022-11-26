@@ -13,10 +13,9 @@ class ProdeConsumer(val database: MongoDatabase) {
 
   val prodesCollection: MongoCollection[Prode] = database.getCollection("prodes")
   val prodeService = new ProdeService(prodesCollection)
-  prodeService.initProdes
 
   // formats for unmarshalling and marshalling
-  implicit val matchFormat = jsonFormat3(Game)
+  implicit val matchFormat = jsonFormat4(Game)
   implicit val createprodeFormat = jsonFormat4(CreateProdeRequest)
   implicit val prodeFormat = jsonFormat5(Prode)
 
@@ -71,8 +70,14 @@ class ProdeConsumer(val database: MongoDatabase) {
             }
           }
         }
+      },
+      (pathPrefix("prode" / "init") & post){
+        val f = prodeService.initProdes
+        onComplete(f) {
+          case Success(_) => complete("Initialization succesfully")
+          case Failure(e) =>  complete(StatusCodes.InternalServerError)
+        }
       }
-
     )
   }
 

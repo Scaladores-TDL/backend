@@ -25,7 +25,7 @@ class GroupConsumer(val database: MongoDatabase) {
   // formats for unmarshalling and marshalling
   implicit val createGroupFormat = jsonFormat2(CrateGroupRequest)
   implicit val groupFormat = jsonFormat3(Group)
-  implicit val matchFormat = jsonFormat3(Game)
+  implicit val matchFormat = jsonFormat4(Game)
   implicit val prodeFormat = jsonFormat5(Prode)
 
   case class User(name: String)
