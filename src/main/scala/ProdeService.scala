@@ -11,6 +11,18 @@ import scala.util.{Failure, Success}
 
 class ProdeService(val prodesCollection: MongoCollection[Prode]) {
 
+  def initProdes = {
+    val bufferedSource = io.Source.fromFile("src/main/resources/prode")
+    val games: List[Game] = bufferedSource.getLines().map(line => {
+      println(line)
+      val cols = line.split(",").map(_.trim)
+      Game(cols(0), cols(1), cols(2).toLong)
+    }).toList
+    val request = CreateProdeRequest(1, "julian", 1, games)
+    this.create(request)
+    bufferedSource.close
+  }
+
   def find: Future[Seq[Prode]] = {
     prodesCollection.find().toFuture()
   }

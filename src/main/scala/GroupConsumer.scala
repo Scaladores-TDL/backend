@@ -10,7 +10,8 @@ import spray.json.DefaultJsonProtocol.jsonFormat2
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.server.directives.Credentials
-import pdi.jwt.{Jwt, JwtAlgorithm}
+import akka.http.scaladsl.unmarshalling.{Unmarshal}
+import pdi.jwt.{Jwt, JwtAlgorithm, JwtClaim}
 
 import scala.util.{Failure, Success}
 
@@ -19,6 +20,7 @@ class GroupConsumer(val database: MongoDatabase) {
   val groupsCollection: MongoCollection[Group] = database.getCollection("groups")
   val prodesCollection: MongoCollection[Prode] = database.getCollection("prodes")
   val groupService = new GroupService(groupsCollection, prodesCollection)
+  val jwtAuthenticator = new JwtAuthenticator
 
   // formats for unmarshalling and marshalling
   implicit val createGroupFormat = jsonFormat2(CrateGroupRequest)
@@ -26,18 +28,11 @@ class GroupConsumer(val database: MongoDatabase) {
   implicit val matchFormat = jsonFormat3(Game)
   implicit val prodeFormat = jsonFormat5(Prode)
 
-  def myAuthentication(credentials: Credentials): Option[String] = {
-    credentials match {
-      case p @ Credentials.Provided(token) if Jwt.isValid(token,"secretKey", Seq(JwtAlgorithm.HS256)) => {
-        Some(token)
-      }
-      case _ => None
-    }
-  }
+  case class User(name: String)
 
   val route = cors() {
     Route.seal {
-      authenticateOAuth2(realm = "secure route", myAuthentication) { token =>
+      authenticateOAuth2(realm = "secure route", jwtAuthenticator.authenticate) { token =>
         concat(
           post {
             pathPrefix("group") {

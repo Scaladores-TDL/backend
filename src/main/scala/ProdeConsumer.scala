@@ -13,6 +13,7 @@ class ProdeConsumer(val database: MongoDatabase) {
 
   val prodesCollection: MongoCollection[Prode] = database.getCollection("prodes")
   val prodeService = new ProdeService(prodesCollection)
+  prodeService.initProdes
 
   // formats for unmarshalling and marshalling
   implicit val matchFormat = jsonFormat3(Game)

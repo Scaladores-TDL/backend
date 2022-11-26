@@ -1,4 +1,6 @@
-final case class Game(team1: String, team2: String, result: Long)
+final case class Game(team1: String, team2: String, result: Long) {
+  require(result >= 0 && result <= 2, "result must be 0, 1 or 2")
+}
 
 final case class CreateProdeRequest(id: Long, user: String, groupId: Long, matches: List[Game]) {
   require(!user.isEmpty, "user name must not be empty")
