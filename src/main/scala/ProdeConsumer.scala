@@ -17,7 +17,7 @@ class ProdeConsumer(val database: MongoDatabase) {
   // formats for unmarshalling and marshalling
   implicit val matchFormat = jsonFormat4(Game)
   implicit val createprodeFormat = jsonFormat4(CreateProdeRequest)
-  implicit val prodeFormat = jsonFormat5(Prode)
+  implicit val prodeFormat = jsonFormat7(Prode)
 
   val route = cors() {
     concat(

@@ -27,7 +27,7 @@ class GroupService(val groupCollection: MongoCollection[Group], val prodeCollect
     val f = prodeCollection.find(Filters.eq("groupId", id)).toFuture()
 
     f.map(prodes => {
-      val sorted = prodes.sortWith(_.points > _.points)
+      val sorted = prodes.sortWith((p1, p2) => p1.compare(p2))
       sorted
     })
   }

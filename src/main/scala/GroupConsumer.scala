@@ -26,7 +26,7 @@ class GroupConsumer(val database: MongoDatabase) {
   implicit val createGroupFormat = jsonFormat2(CrateGroupRequest)
   implicit val groupFormat = jsonFormat3(Group)
   implicit val matchFormat = jsonFormat4(Game)
-  implicit val prodeFormat = jsonFormat5(Prode)
+  implicit val prodeFormat = jsonFormat7(Prode)
 
   case class User(name: String)
 

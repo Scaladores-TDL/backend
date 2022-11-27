@@ -28,7 +28,7 @@ class ProdeService(val prodesCollection: MongoCollection[Prode]) {
   }
 
   def create(request: CreateProdeRequest) = {
-    val prode = Prode(request.id, request.user, request.groupId, request.matches, 0)
+    val prode = Prode(request.id, request.user, request.groupId, request.matches, 0, 0, 0)
     prodesCollection.insertOne(prode).toFuture()
   }
 
