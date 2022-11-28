@@ -6,6 +6,7 @@
   <component name="ChangeListManager">
     <list default="true" id="1d3dc2ac-d512-48bd-86e9-10ac489bc880" name="Changes" comment="initial setup">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/prode" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/prode" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/scala/Game.scala" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/scala/Game.scala" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/scala/GroupConsumer.scala" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/scala/GroupConsumer.scala" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/scala/GroupService.scala" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/scala/GroupService.scala" afterDir="false" />

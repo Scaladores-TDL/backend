@@ -2,7 +2,7 @@ final case class CreateProdeRequest(id: Long, user: String, groupId: Long, match
   require(!user.isEmpty, "user name must not be empty")
 }
 
-final case class Prode(id: Long, user: String, groupId: Long, matches: List[Game], points: Long, totalHits: Long, totalWrong: Long){
+case class Prode(_id: Long, user: String, groupId: Long, matches: List[Game], points: Long, totalHits: Long, totalWrong: Long){
   require(!user.isEmpty)
   require(points >= 0)
 

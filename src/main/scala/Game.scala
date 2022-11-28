@@ -21,7 +21,7 @@ final case class Game(team1: String, team2: String, result1: Long, result2: Long
     //0 empate, 1 gana team2 -1 gana team2
     if (winner == other.winner) {
       println("Team is corect")
-      return (1, 1, 0)
+      return (1, 0, 0)
     }
 
     println("Resul is wrong")
