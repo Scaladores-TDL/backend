@@ -9,9 +9,6 @@ import spray.json.DefaultJsonProtocol._
 import spray.json.DefaultJsonProtocol.jsonFormat2
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
-import akka.http.scaladsl.server.directives.Credentials
-import akka.http.scaladsl.unmarshalling.{Unmarshal}
-import pdi.jwt.{Jwt, JwtAlgorithm, JwtClaim}
 
 import scala.util.{Failure, Success}
 
@@ -26,9 +23,7 @@ class GroupConsumer(val database: MongoDatabase) {
   implicit val createGroupFormat = jsonFormat2(CrateGroupRequest)
   implicit val groupFormat = jsonFormat3(Group)
   implicit val matchFormat = jsonFormat4(Game)
-  implicit val prodeFormat = jsonFormat5(Prode)
-
-  case class User(name: String)
+  implicit val prodeFormat = jsonFormat7(Prode)
 
   val route = cors() {
     Route.seal {

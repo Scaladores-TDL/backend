@@ -7,22 +7,24 @@ final case class Game(team1: String, team2: String, result1: Long, result2: Long
   }
 
   def result: (Long, Long) = (result1, result2)
-  def winner: Long = result1 - result2
+  def winner: Long = (result1 - result2).sign
 
-  def calculatePoints(other: Game): Long = {
+  def calculatePoints(other: Game): (Long, Long, Long) = {
+    println("compare " + this + " with " + other)
+
     if (result == other.result) {
       println("Result is correct")
-      return 3
+      return (3, 1, 0)
     }
 
     //See who win
     //0 empate, 1 gana team2 -1 gana team2
     if (winner == other.winner) {
       println("Team is corect")
-      return 1
+      return (1, 0, 0)
     }
 
     println("Resul is wrong")
-    0
+    (0, 0 ,1)
   }
 }

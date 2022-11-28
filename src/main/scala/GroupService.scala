@@ -1,12 +1,9 @@
-import akka.http.scaladsl.model.StatusCodes
-import akka.http.scaladsl.server.Directives.{complete, onComplete}
 import org.mongodb.scala.MongoCollection
-import org.mongodb.scala.model.{Aggregates, Filters, Updates}
+import org.mongodb.scala.model.{Filters}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-import scala.util.{Failure, Success}
 
 class GroupService(val groupCollection: MongoCollection[Group], val prodeCollection: MongoCollection[Prode]) {
 
@@ -27,7 +24,7 @@ class GroupService(val groupCollection: MongoCollection[Group], val prodeCollect
     val f = prodeCollection.find(Filters.eq("groupId", id)).toFuture()
 
     f.map(prodes => {
-      val sorted = prodes.sortWith(_.points > _.points)
+      val sorted = prodes.sortWith((p1, p2) => p1.compare(p2))
       sorted
     })
   }
