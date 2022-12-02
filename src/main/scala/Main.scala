@@ -2,6 +2,7 @@ import akka.actor.typed.ActorSystem
 import akka.actor.typed.scaladsl.Behaviors
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.server.Directives._
+import games.{Game, GroupStage, CompleteGame, Statistics}
 import org.mongodb.scala.bson.codecs.Macros._
 import org.bson.codecs.configuration.CodecRegistries.{fromProviders, fromRegistries}
 import org.mongodb.scala.MongoClient
@@ -16,7 +17,10 @@ object Main {
   def main(args: Array[String]): Unit = {
      val uri: String = "mongodb://localhost:27017"
      val client: MongoClient = MongoClient(uri)
-     val codecRegistry = fromRegistries(fromProviders(classOf[Prode], classOf[Game], classOf[Group]), MongoClient.DEFAULT_CODEC_REGISTRY)
+     val codecRegistry = fromRegistries(
+       fromProviders(classOf[Prode], classOf[GroupStage], classOf[CompleteGame], classOf[Statistics], classOf[Group]),
+       MongoClient.DEFAULT_CODEC_REGISTRY
+     )
      val database = client.getDatabase("prodes").withCodecRegistry(codecRegistry)
 
      val prodeConsumer = new ProdeConsumer(database)

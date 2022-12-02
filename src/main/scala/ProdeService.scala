@@ -1,3 +1,4 @@
+import games.{CompleteGame, Game, GroupStage, Statistics}
 import org.bson.conversions.Bson
 import org.mongodb.scala.model.Filters
 import org.mongodb.scala.MongoCollection
@@ -13,15 +14,16 @@ class ProdeService(val prodesCollection: MongoCollection[Prode]) {
     val bufferedSource = io.Source.fromFile("src/main/resources/prode")
     val prodeData = bufferedSource.getLines().next().split(",").map(_.trim)
 
-    val games: List[Game] = bufferedSource.getLines().map(line => {
+    val games: List[GroupStage] = bufferedSource.getLines().map(line => {
       println(line)
       val cols = line.split(",").map(_.trim)
-      Game(cols(0), cols(1), cols(2).toLong, cols(3).toLong)
+      GroupStage(cols(0), cols(1), cols(2).toLong, cols(3).toLong)
     }).toList
     bufferedSource.close
 
-    val request = CreateProdeRequest(prodeData(0).toLong, prodeData(1), prodeData(2).toLong, games)
-    this.create(request)
+    //val request = CreateProdeRequest(prodeData(0).toLong, prodeData(1), prodeData(2).toLong, games, List(),)
+    //this.create(request)
+    Future {}
   }
 
   def find(filters: Bson = Filters.empty()): Future[Seq[Prode]] = {
@@ -37,7 +39,8 @@ class ProdeService(val prodesCollection: MongoCollection[Prode]) {
   }
 
   def create(request: CreateProdeRequest): Future[InsertOneResult] = {
-    val prode = Prode(request.id, request.user, request.groupId, request.matches, 0, 0, 0)
+    val prode = Prode(request._id, request.user, request.groupId, request.matches, request.octaveFinal, request.finalGame, Statistics(0,0,0))
+    println(prode)
     prodesCollection.insertOne(prode).toFuture()
   }
 
@@ -45,10 +48,19 @@ class ProdeService(val prodesCollection: MongoCollection[Prode]) {
     prodesCollection.deleteOne(Filters.eq("_id", prodeId)).toFuture()
   }
 
-  def simulateGame(game: Game) = {
+  def simulate(game: Game) = {
     this.find().map(prodes => {
       prodes.foreach(prode => {
-        val prodeUpdated = prode.simulateGame(game)
+        val prodeUpdated = prode.simulate(game)
+        prodesCollection.replaceOne(Filters.eq("_id", prodeUpdated._id), prodeUpdated).subscribe((updateResult: UpdateResult) => println(updateResult))
+      })
+    })
+  }
+
+  def simulateFinal(simulation: CompleteGame) = {
+    this.find().map(prodes => {
+      prodes.foreach(prode => {
+        val prodeUpdated = prode.simulateFinal(simulation)
         prodesCollection.replaceOne(Filters.eq("_id", prodeUpdated._id), prodeUpdated).subscribe((updateResult: UpdateResult) => println(updateResult))
       })
     })
