@@ -9,6 +9,7 @@ import spray.json.DefaultJsonProtocol._
 import spray.json.DefaultJsonProtocol.jsonFormat2
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
+import games.{GroupStage, CompleteGame, Statistics}
 
 import scala.util.{Failure, Success}
 
@@ -22,54 +23,62 @@ class GroupConsumer(val database: MongoDatabase) {
   // formats for unmarshalling and marshalling
   implicit val createGroupFormat = jsonFormat2(CrateGroupRequest)
   implicit val groupFormat = jsonFormat3(Group)
-  implicit val matchFormat = jsonFormat4(Game)
+  implicit val groupStageFormat = jsonFormat4(GroupStage)
+  implicit val octaveFinalFromat = jsonFormat6(CompleteGame)
+  implicit val statisticsFormat = jsonFormat3(Statistics)
   implicit val prodeFormat = jsonFormat7(Prode)
 
   val route = cors() {
-    Route.seal {
-      authenticateOAuth2(realm = "secure route", jwtAuthenticator.authenticate) { token =>
-        concat(
-          post {
-            pathPrefix("group") {
-              entity(as[CrateGroupRequest]) {
-                newGroup => {
-                  val f = groupService.create(newGroup)
+    pathPrefix("group") {
+      Route.seal {
+        authenticateOAuth2(realm = "secure route", jwtAuthenticator.authenticate) { token =>
+          concat(
+            post {
+              pathEnd {
+                entity(as[CrateGroupRequest]) {
+                  newGroup => {
+                    val f = groupService.create(newGroup)
+                    onComplete(f) {
+                      case Success(value) => complete("group created succesfully")
+                      case Failure(e) =>  complete(StatusCodes.InternalServerError)
+                    }
+                  }
+                }
+              }
+            },
+            delete {
+              path(LongNumber) {
+                groupId => {
+                  val f = groupService.delete(groupId)
                   onComplete(f) {
-                    case Success(value) => complete("group created succesfully")
+                    case Success(result: DeleteResult) => {
+                      println(result)
+                      if (result.getDeletedCount == 0) {
+                        complete(StatusCodes.NotFound)
+                      } else {
+                        complete("delete succesfully")
+
+                      }
+                    }
                     case Failure(e) =>  complete(StatusCodes.InternalServerError)
                   }
                 }
               }
-            }
-          },
-          delete {
-            pathPrefix("group" / LongNumber) {
-              groupId => {
-                val f = groupService.delete(groupId)
-                onComplete(f) {
-                  case Success(result: DeleteResult) => {
-                    println(result)
-                    if (result.getDeletedCount == 0) {
-                      complete(StatusCodes.NotFound)
-                    } else {
-                      complete("delete succesfully")
-
-                    }
+            },
+            get {
+              concat(
+                pathEnd {
+                  complete(groupService.getGroups)
+                },
+                path(LongNumber) {
+                  groupId => {
+                    complete(groupService.getGroupById(groupId))
                   }
-                  case Failure(e) =>  complete(StatusCodes.InternalServerError)
-                }
-              }
+                },
+              )
             }
-          },
-          (pathPrefix("group" / LongNumber) & get) {
-            groupId => {
-              complete(groupService.getGroupById(groupId))
-            }
-          },
-          (pathPrefix("group") & get) {
-            complete(groupService.getGroups)
-          },
-        )
+          )
+        }
       }
     }
   }

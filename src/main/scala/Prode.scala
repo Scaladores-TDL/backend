@@ -1,46 +1,64 @@
-final case class CreateProdeRequest(id: Long, user: String, groupId: Long, matches: List[Game]) {
-  require(!user.isEmpty, "user name must not be empty")
-}
+import games.{Game, GroupStage, CompleteGame, Statistics}
 
-case class Prode(_id: Long, user: String, groupId: Long, matches: List[Game], points: Long, totalHits: Long, totalWrong: Long){
-  require(!user.isEmpty)
-  require(points >= 0)
+case class Prode(_id: Long, user: String, groupId: Long, matches: List[GroupStage], octaveFinal: List[CompleteGame], finalGame: CompleteGame, statistics: Statistics){
+  require(user.nonEmpty)
+  require(statistics.points >= 0)
+  require(statistics.totalHits >= 0)
+  require(statistics.totalWrong >= 0)
 
-  def simulateGame(game: Game): Prode = {
-    matches.find(g => g.sameGame(game)) match {
-      case Some(g) => {
-        println("Game found in prode")
-        val statistics = g.calculatePoints(game)
-        println(statistics)
-        this.copy(
-          points = points + statistics._1,
-          totalHits = totalHits + statistics._2,
-          totalWrong = totalWrong + statistics._3)
+  def simulate(game: Game): Prode = {
+    game match {
+      case g: GroupStage => {
+        println("games.GroupStage")
+        simulateStageGame(g)
       }
-      case None => {
-        println("game does not exists")
+      case g: CompleteGame => {
+        println("games.OctaveFinal")
+        simulateOctaveFinal(g)
+      }
+      case _ => {
+        println("cannot simulate")
         this
       }
     }
   }
 
+  def simulateStageGame(simulation: GroupStage) = {
+    matches
+      .find(g => g.sameGame(simulation))
+      .map(g => {
+        println("games.Game found in prode")
+        val statistics = g.calculatePoints(simulation)
+        this.copy(
+          statistics = this.statistics + statistics)
+      })
+      .getOrElse({
+        println("game does not exists")
+        this
+      })
+  }
+
+  def simulateOctaveFinal(simulation: CompleteGame) = {
+    octaveFinal.find(g => g.sameGame(simulation)).map(g => {
+      println("games.Game found in prode")
+      val statistics = g.calculatePoints(simulation)
+      println(statistics)
+      this.copy(
+        statistics = this.statistics + statistics)
+    }).getOrElse({
+      println("game does not exists")
+      this
+    })
+  }
+
+  def simulateFinal(simulation: CompleteGame) = {
+    val statisticsBase = finalGame.calculatePoints(simulation)
+    val statistics = statisticsBase + finalGame.calculatePointsFinal(simulation)
+    this.copy(
+      statistics = this.statistics + statistics)
+  }
+
   def compare(other: Prode): Boolean = {
-    if (points > other.points) {
-      return true
-    }
-
-    if (points == other.points) {
-      if (totalHits > other.totalHits) {
-        return true
-      }
-
-      if (totalHits == other.totalHits) {
-        if (totalWrong < other.totalWrong){
-          return true
-        }
-      }
-    }
-
-    false
+    statistics > other.statistics
   }
 }
