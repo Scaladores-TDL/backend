@@ -2,10 +2,12 @@ import akka.actor.typed.ActorSystem
 import akka.actor.typed.scaladsl.Behaviors
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.server.Directives._
-import games.{Game, GroupStage, CompleteGame, Statistics}
+import games.{CompleteGame, GroupStage, Statistics}
+import group.{Group, GroupConsumer}
 import org.mongodb.scala.bson.codecs.Macros._
 import org.bson.codecs.configuration.CodecRegistries.{fromProviders, fromRegistries}
 import org.mongodb.scala.MongoClient
+import prode.{Prode, ProdeConsumer}
 
 import scala.io.{Source, StdIn}
 
@@ -24,7 +26,7 @@ object Main {
      val database = client.getDatabase("prodes").withCodecRegistry(codecRegistry)
 
      val prodeConsumer = new ProdeConsumer(database)
-     val groupConsumer = new GroupConsumer(database)
+     val groupConsumer = new GroupConsumer(database, prodeConsumer.prodeService)
 
      val bindingFuture = Http().newServerAt("localhost", 8080).bind(concat(prodeConsumer.route, groupConsumer.route))
 

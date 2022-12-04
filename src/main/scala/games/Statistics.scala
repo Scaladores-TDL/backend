@@ -2,24 +2,6 @@ package games
 
 case class Statistics(var points: Long, var totalHits: Long, var totalWrong: Long) {
 
-  def resultCorrect = {
-    points += 3
-    totalHits += 1
-  }
-
-  def resultWrong = {
-    totalWrong += 1
-  }
-
-  def teamCorrect = {
-    points += 1
-  }
-
-  def penaltiesCorrect = {
-    points += 8
-    totalHits += 1
-  }
-
   def +(other: Statistics): Statistics = {
     Statistics(points + other.points, totalHits + other.totalHits, totalWrong + other.totalWrong)
   }
