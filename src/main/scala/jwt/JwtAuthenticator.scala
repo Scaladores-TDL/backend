@@ -15,7 +15,7 @@ class JwtAuthenticator {
           case Success(data) => {
             println(data.content)
           }
-          case Failure(e) => println(e.)
+          case Failure(e) => println(e)
         }
         Some(token)
       }
