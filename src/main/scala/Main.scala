@@ -4,6 +4,7 @@ import akka.http.scaladsl.Http
 import akka.http.scaladsl.server.Directives._
 import games.{CompleteGame, GroupStage, Statistics}
 import group.{Group, GroupConsumer}
+import jwt.SessionConsumer
 import org.mongodb.scala.bson.codecs.Macros._
 import org.bson.codecs.configuration.CodecRegistries.{fromProviders, fromRegistries}
 import org.mongodb.scala.MongoClient
@@ -27,8 +28,10 @@ object Main {
 
      val prodeConsumer = new ProdeConsumer(database)
      val groupConsumer = new GroupConsumer(database, prodeConsumer.prodeService)
+     val sessionConsumer = new SessionConsumer()
 
-     val bindingFuture = Http().newServerAt("localhost", 8080).bind(concat(prodeConsumer.route, groupConsumer.route))
+     val bindingFuture = Http().newServerAt("localhost", 8080)
+       .bind(concat(prodeConsumer.route, groupConsumer.route, sessionConsumer.route))
 
      println(s"Server now online. Please navigate to http://localhost:8080/hello\nPress RETURN to stop...")
      StdIn.readLine() // let it run until user presses return
