@@ -1,4 +1,4 @@
-target/*
-project/*
-.idea/*
-.bsp/*
+target
+project
+.idea
+.bsp
