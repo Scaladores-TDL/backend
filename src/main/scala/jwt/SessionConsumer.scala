@@ -11,26 +11,26 @@ import org.mongodb.scala.{MongoCollection, MongoDatabase}
 import spray.json.DefaultJsonProtocol._
 
 class SessionConsumer {
-    val jwtGenerator = new JwtGenerator()
+  val jwtGenerator = new JwtGenerator()
 
-    implicit val createSessionFormat = jsonFormat1(CreateSessionRequest)
+  implicit val createSessionFormat = jsonFormat1(CreateSessionRequest)
 
-    val route = cors() {
-        pathPrefix ("session") {
-            concat(
-                post {
-                    concat(
-                        pathEnd {
-                            entity(as[CreateSessionRequest]) {
-                                request => {
-                                    val token = jwtGenerator.createToken(request.username)
-                                    complete(token)
-                                }
-                            }
-                        }
-                    )
+  val route = cors() {
+    pathPrefix ("session") {
+      concat(
+        post {
+          concat(
+            pathEnd {
+              entity(as[CreateSessionRequest]) {
+                request => {
+                  val token = jwtGenerator.createToken(request.username)
+                  complete(token)
                 }
-            )
+              }
+            }
+          )
         }
+      )
     }
+  }
 }
