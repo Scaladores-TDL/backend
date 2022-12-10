@@ -12,22 +12,6 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 class ProdeService(val prodesCollection: MongoCollection[Prode]) {
 
-  def initProdes = {
-    val bufferedSource = io.Source.fromFile("src/main/resources/prodeTest")
-    val prodeData = bufferedSource.getLines().next().split(",").map(_.trim)
-
-    val games: List[GroupStage] = bufferedSource.getLines().map(line => {
-      println(line)
-      val cols = line.split(",").map(_.trim)
-      GroupStage(cols(0), cols(1), cols(2).toLong, cols(3).toLong)
-    }).toList
-    bufferedSource.close
-
-    //val request = prodeTest.CreateProdeRequest(prodeData(0).toLong, prodeData(1), prodeData(2).toLong, games, List(),)
-    //this.create(request)
-    Future {}
-  }
-
   def find(filters: Bson = Filters.empty()): Future[Seq[Prode]] = {
     prodesCollection.find(filters).toFuture()
   }
@@ -47,7 +31,7 @@ class ProdeService(val prodesCollection: MongoCollection[Prode]) {
 
   def create(request: CreateProdeRequest) = {
 
-    //See if this user already create a prodeTest in this group
+    //See if this user already create a prode in this group
     val filters = Filters.and(Filters.eq("user", request.user), Filters.eq("groupId", request.groupId))
     find(filters).flatMap(prodes => {
       if (prodes.nonEmpty) {
@@ -63,21 +47,30 @@ class ProdeService(val prodesCollection: MongoCollection[Prode]) {
     prodesCollection.deleteOne(Filters.eq("_id", prodeId)).toFuture()
   }
 
-  def simulate(game: Game) = {
+  def simulateGame(simulation: Prode => Prode) = {
     this.find().map(prodes => {
       prodes.foreach(prode => {
-        val prodeUpdated = prode.simulate(game)
+        val prodeUpdated = simulation(prode)
         prodesCollection.replaceOne(Filters.eq("_id", prodeUpdated._id), prodeUpdated).subscribe((updateResult: UpdateResult) => println(updateResult))
       })
     })
   }
 
-  def simulateFinal(simulation: CompleteGame) = {
-    this.find().map(prodes => {
-      prodes.foreach(prode => {
-        val prodeUpdated = prode.simulateFinal(simulation)
-        prodesCollection.replaceOne(Filters.eq("_id", prodeUpdated._id), prodeUpdated).subscribe((updateResult: UpdateResult) => println(updateResult))
-      })
+  def simulateStageGame(game: GroupStage) = {
+    this.simulateGame(prode => {
+      prode.simulateStageGame(game)
+    })
+  }
+
+  def simulateMatch(game: CompleteGame) = {
+    this.simulateGame(prode => {
+      prode.simulateMatch(game)
+    })
+  }
+
+  def simulateFinal(game: CompleteGame) = {
+    this.simulateGame(prode => {
+      prode.simulateFinal(game)
     })
   }
 }

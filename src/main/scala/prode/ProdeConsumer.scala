@@ -70,22 +70,10 @@ class ProdeConsumer(val database: MongoDatabase) {
                 }
               }
             },
-            path("init") {
-              val f = prodeService.initProdes
-              onComplete(f) {
-                case Success(_) => complete("Initialization succesfully")
-                case Failure(e) => {
-                  e match {
-                    case e: MongoWriteException => complete(StatusCodes.BadRequest, "prodeTest.Prode already exists.")
-                    case _ => complete(StatusCodes.InternalServerError)
-                  }
-                }
-              }
-            },
-            path("simulate_game") {
+            path("simulate_stage_game") {
               entity(as[GroupStage]) {
                 game => {
-                  val f = prodeService.simulate(game)
+                  val f = prodeService.simulateStageGame(game)
                   onComplete(f) {
                     case Success(_) => complete("Simulation completed succesfully")
                     case Failure(e) =>  complete(StatusCodes.InternalServerError)
@@ -93,12 +81,12 @@ class ProdeConsumer(val database: MongoDatabase) {
                 }
               }
             },
-            path("simulate_octave_final") {
+            path("simulate_match") {
               entity(as[CompleteGame]) {
                 game => {
-                  val f = prodeService.simulate(game)
+                  val f = prodeService.simulateMatch(game)
                   onComplete(f) {
-                    case Success(_) => complete("Simulation octave final game completed succesfully")
+                    case Success(_) => complete("Simulation match completed succesfully")
                     case Failure(e) =>  complete(StatusCodes.InternalServerError)
                   }
                 }

@@ -9,7 +9,13 @@ abstract class Game(team1: String, team2: String, result1: Long, result2: Long) 
     teams == other.teams
   }
   def result: (Long, Long) = (result1, result2)
-  def winner: Long = (result1 - result2).sign
+  def winner: Long = {
+    println(result1)
+    println(result2)
+    val result = (result1 - result2).sign
+    println(result)
+    result
+  }
   def calculatePoints(other: Game): Statistics = {
     if (result == other.result) {
       println("Result is correct")
