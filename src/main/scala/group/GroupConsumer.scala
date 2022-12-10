@@ -18,9 +18,9 @@ import jwt.JwtAuthenticator
 
 import java.util.NoSuchElementException
 
-class GroupConsumer(val database: MongoDatabase, prodeService: ProdeService) {
+class GroupConsumer(val database: MongoDatabase) {
   val groupsCollection: MongoCollection[Group] = database.getCollection("groups")
-  val groupService = new GroupService(groupsCollection, prodeService)
+  val groupService = new GroupService(groupsCollection)
   val jwtAuthenticator: JwtAuthenticator = JwtAuthenticator()
 
   // formats for unmarshalling and marshalling
@@ -37,6 +37,25 @@ class GroupConsumer(val database: MongoDatabase, prodeService: ProdeService) {
       Route.seal {
         authenticateOAuth2(realm = "secure route", jwtAuthenticator.authenticate) { token =>
           concat(
+            get {
+              concat(
+                pathEnd {
+                  complete(groupService.findGroups())
+                },
+                path(LongNumber) {
+                  groupId => {
+                    val f = groupService.findGroupById(groupId)
+                    onComplete(f) {
+                      case Success(group) => group match {
+                        case Some(group) => complete(group)
+                        case None => complete(StatusCodes.NotFound)
+                      }
+                      case Failure(e) => complete(StatusCodes.InternalServerError)
+                    }
+                  }
+                },
+              )
+            },
             post {
               pathEnd {
                 entity(as[CrateGroupRequest]) {
@@ -74,25 +93,6 @@ class GroupConsumer(val database: MongoDatabase, prodeService: ProdeService) {
                 }
               }
             },
-            get {
-              concat(
-                pathEnd {
-                  complete(groupService.getGroups)
-                },
-                path(LongNumber) {
-                  groupId => {
-                    val f = groupService.getGroupById(groupId)
-                    onComplete(f) {
-                      case Success(group) => complete(group)
-                      case Failure(e) => e match {
-                        case e: NoSuchElementException => complete(StatusCodes.NotFound)
-                        case _ => complete(StatusCodes.InternalServerError)
-                      }
-                    }
-                  }
-                },
-              )
-            }
           )
         }
       }

@@ -1,6 +1,7 @@
 package prode
 
 import games.{CompleteGame, Game, GroupStage, Statistics}
+import group.{Group, GroupService}
 import org.bson.conversions.Bson
 import org.mongodb.scala.MongoCollection
 import org.mongodb.scala.model.Filters
@@ -10,7 +11,7 @@ import scala.concurrent.Future
 // the following is equivalent to `implicit val ec = ExecutionContext.global`
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class ProdeService(val prodesCollection: MongoCollection[Prode]) {
+class ProdeService(val prodesCollection: MongoCollection[Prode], val groupService: GroupService) {
 
   def find(filters: Bson = Filters.empty()): Future[Seq[Prode]] = {
     prodesCollection.find(filters).toFuture()
@@ -29,18 +30,30 @@ class ProdeService(val prodesCollection: MongoCollection[Prode]) {
     this.find(filters)
   }
 
+  def findProdeByGroupId(groupId: Long): Future[Seq[Prode]] = {
+    val filters = Filters.eq("groupId", groupId)
+    this.find(filters).map( prodes =>
+      prodes.sortWith((p1, p2) => p1.compare(p2))
+    )
+  }
+
   def create(request: CreateProdeRequest) = {
 
-    //See if this user already create a prode in this group
-    val filters = Filters.and(Filters.eq("user", request.user), Filters.eq("groupId", request.groupId))
-    find(filters).flatMap(prodes => {
-      if (prodes.nonEmpty) {
-        Future.failed(new Error)
-      } else {
-        val prode = Prode(request._id, request.user, request.groupId, request.matches, request.octaveFinal, request.finalGame, Statistics(0,0,0))
-        prodesCollection.insertOne(prode).toFuture()
+    //See if the group exist
+    this.groupService.findGroupById(request.groupId).flatMap {
+      case Some(_) => {
+        //See if this user already create a prode in this group
+        val filters = Filters.and(Filters.eq("user", request.user), Filters.eq("groupId", request.groupId))
+        find(filters).flatMap {
+          case Nil => {
+            val prode = Prode(request._id, request.user, request.groupId, request.matches, request.octaveFinal, request.finalGame, Statistics(0,0,0))
+            prodesCollection.insertOne(prode).toFuture()
+          }
+          case prode :: tail => throw new Exception("this user has created a prode in this group")
+        }
       }
-    })
+      case None => throw new Exception("group not exists")
+    }
   }
 
   def delete(prodeId: Long): Future[DeleteResult] = {

@@ -1,5 +1,6 @@
 package group
 
+import org.bson.conversions.Bson
 import org.mongodb.scala.MongoCollection
 import org.mongodb.scala.model.Filters
 import org.mongodb.scala.result.{DeleteResult, InsertOneResult}
@@ -9,10 +10,10 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 
-class GroupService(val groupCollection: MongoCollection[Group], val prodeService: ProdeService) {
+class GroupService(val groupCollection: MongoCollection[Group]) {
 
-  def getGroups: Future[Seq[Group]] = {
-    groupCollection.find().toFuture()
+  def findGroups(filters: Bson = Filters.empty()): Future[Seq[Group]] = {
+    groupCollection.find(filters).toFuture()
   }
 
   def create(request: CrateGroupRequest): Future[InsertOneResult] = {
@@ -24,15 +25,11 @@ class GroupService(val groupCollection: MongoCollection[Group], val prodeService
     groupCollection.deleteOne(Filters.eq("_id", groupId)).toFuture()
   }
 
-  def getGroupById(id: Long): Future[Group] = {
+  def findGroupById(id: Long): Future[Option[Group]] = {
     val filters = Filters.eq("_id", id)
-
-    this.groupCollection.find(filters).toFuture()
-      .map(groups => groups.head)
-      .flatMap(group => {
-        prodeService.findProdesByGroupId(group._id).map(prodes => {
-          group.copy(prodes = prodes)
-        })
-      })
+    this.findGroups(filters).map {
+      case group :: Nil => Some(group)
+      case _ =>  None
+    }
   }
 }
