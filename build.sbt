@@ -17,5 +17,10 @@ libraryDependencies ++= Seq(
   "ch.megard" %% "akka-http-cors" % "1.1.3",
   "org.mongodb.scala" %% "mongo-scala-driver" % "4.7.0",
   "org.slf4j" % "slf4j-simple" % "1.6.4",
-  "com.github.jwt-scala" %% "jwt-core" % "9.1.2"
+  "com.github.jwt-scala" %% "jwt-core" % "9.1.2",
+  "com.github.jw3" %% "webhooks" % "0.6",
+  "io.spray" %%  "spray-json" % "1.3.6",
+  "com.lihaoyi" %% "upickle" % "0.9.5"
 )
+
+resolvers += "jw3 at bintray" at "https://dl.bintray.com/jw3/maven"
