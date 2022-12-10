@@ -26,8 +26,8 @@ object Main {
      )
      val database = client.getDatabase("prodes").withCodecRegistry(codecRegistry)
 
-     val prodeConsumer = new ProdeConsumer(database)
-     val groupConsumer = new GroupConsumer(database, prodeConsumer.prodeService)
+     val groupConsumer = new GroupConsumer(database)
+     val prodeConsumer = new ProdeConsumer(database,groupConsumer.groupService)
      val sessionConsumer = new SessionConsumer()
 
      val bindingFuture = Http().newServerAt("localhost", 8080)

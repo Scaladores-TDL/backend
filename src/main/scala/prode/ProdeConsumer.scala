@@ -7,7 +7,7 @@ import akka.http.scaladsl.server.Route
 import ch.megard.akka.http.cors.scaladsl.CorsDirectives._
 import com.mongodb.MongoWriteException
 import games.{CompleteGame, GroupStage, Statistics}
-import group.CrateGroupRequest
+import group.{CrateGroupRequest, GroupService}
 import jwt.JwtAuthenticator
 import org.mongodb.scala.result.DeleteResult
 import org.mongodb.scala.{MongoCollection, MongoDatabase}
@@ -16,10 +16,10 @@ import spray.json.DefaultJsonProtocol._
 import java.util.NoSuchElementException
 import scala.util.{Failure, Success}
 
-class ProdeConsumer(val database: MongoDatabase) {
+class ProdeConsumer(val database: MongoDatabase, val groupService: GroupService) {
 
   val prodesCollection: MongoCollection[Prode] = database.getCollection("prodes")
-  val prodeService = new ProdeService(prodesCollection)
+  val prodeService = new ProdeService(prodesCollection, groupService)
   val jwtAuthenticator: JwtAuthenticator = JwtAuthenticator()
 
   // formats for unmarshalling and marshalling
@@ -52,6 +52,13 @@ class ProdeConsumer(val database: MongoDatabase) {
                     }
                     case Failure(e) => complete(StatusCodes.InternalServerError)
                   }
+                },
+                path("group" / LongNumber) { groupId =>
+                  val f = prodeService.findProdeByGroupId(groupId)
+                  onComplete(f) {
+                    case Success(prodes) => complete(prodes)
+                    case Failure(e) => complete(StatusCodes.InternalServerError)
+                  }
                 }
               )
             },
@@ -62,15 +69,12 @@ class ProdeConsumer(val database: MongoDatabase) {
                     request => {
                       val f = prodeService.create(request)
                       onComplete(f) {
-                        case Success(_) => complete("prodeTest created succesfully")
+                        case Success(_) => complete("prode created succesfully")
                         case Failure(e) => {
-                          println(e)
                           e match {
-                            case e: MongoWriteException => complete(StatusCodes.BadRequest, "prodeTest.Prode already exists.")
-                            case e => {
-                              println(e.getMessage)
-                              complete(StatusCodes.InternalServerError)
-                            }
+                            case e: MongoWriteException => complete(StatusCodes.BadRequest, "prode already exists.")
+                            case e: Exception => complete(StatusCodes.BadRequest, e.getMessage)
+                            case _ => complete(StatusCodes.InternalServerError)
                           }
                         }
                       }
