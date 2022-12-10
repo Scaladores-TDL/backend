@@ -120,7 +120,7 @@ class ProdeConsumer(val database: MongoDatabase, val groupService: GroupService)
               )
             },
             delete {
-              path("prode" / LongNumber) {
+              path(LongNumber) {
                 prodeId => {
                   val f = prodeService.delete(prodeId)
                   onComplete(f) {

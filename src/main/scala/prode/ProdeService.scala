@@ -46,7 +46,7 @@ class ProdeService(val prodesCollection: MongoCollection[Prode], val groupServic
         val filters = Filters.and(Filters.eq("user", request.user), Filters.eq("groupId", request.groupId))
         find(filters).flatMap {
           case Nil => {
-            val prode = Prode(request._id, request.user, request.groupId, request.matches, request.octaveFinal, request.finalGame, Statistics(0,0,0))
+            val prode = Prode(request._id, request.user, request.groupId, request.groupStage, request.matches, request.finalGame, Statistics(0,0,0))
             prodesCollection.insertOne(prode).toFuture()
           }
           case prode :: tail => throw new Exception("this user has created a prode in this group")
