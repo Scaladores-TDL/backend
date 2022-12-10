@@ -2,7 +2,8 @@ package group
 
 import org.mongodb.scala.MongoCollection
 import org.mongodb.scala.model.Filters
-import prode.{ProdeService}
+import org.mongodb.scala.result.{DeleteResult, InsertOneResult}
+import prode.ProdeService
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -14,12 +15,12 @@ class GroupService(val groupCollection: MongoCollection[Group], val prodeService
     groupCollection.find().toFuture()
   }
 
-  def create(request: CrateGroupRequest) = {
+  def create(request: CrateGroupRequest): Future[InsertOneResult] = {
     val group = Group(request._id, request.name, List())
     groupCollection.insertOne(group).toFuture()
   }
 
-  def delete(groupId: Long) = {
+  def delete(groupId: Long): Future[DeleteResult] = {
     groupCollection.deleteOne(Filters.eq("_id", groupId)).toFuture()
   }
 

@@ -6,6 +6,7 @@ import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.PathMatchers.LongNumber
 import akka.http.scaladsl.server.Route
 import ch.megard.akka.http.cors.scaladsl.CorsDirectives.cors
+import com.mongodb.MongoWriteException
 import games.{CompleteGame, GroupStage, Statistics}
 import org.mongodb.scala.result.DeleteResult
 import org.mongodb.scala.{MongoCollection, MongoDatabase}
@@ -43,7 +44,12 @@ class GroupConsumer(val database: MongoDatabase, prodeService: ProdeService) {
                     val f = groupService.create(newGroup)
                     onComplete(f) {
                       case Success(value) => complete("group created succesfully")
-                      case Failure(e) =>  complete(StatusCodes.InternalServerError)
+                      case Failure(e) => {
+                        e match {
+                          case e: MongoWriteException => complete(StatusCodes.BadRequest, "group already exists")
+                          case _ => complete(StatusCodes.InternalServerError)
+                        }
+                      }
                     }
                   }
                 }
