@@ -5,6 +5,12 @@ import pdi.jwt.{Jwt, JwtAlgorithm}
 
 import scala.util.{Failure, Success}
 
+object JwtAuthenticator {
+  def apply(): JwtAuthenticator = {
+    new JwtAuthenticator
+  }
+}
+
 class JwtAuthenticator {
   val SECRET_KEY = "super_duper_secret_key"
 

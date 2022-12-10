@@ -21,7 +21,7 @@ import java.util.NoSuchElementException
 class GroupConsumer(val database: MongoDatabase, prodeService: ProdeService) {
   val groupsCollection: MongoCollection[Group] = database.getCollection("groups")
   val groupService = new GroupService(groupsCollection, prodeService)
-  val jwtAuthenticator = new JwtAuthenticator
+  val jwtAuthenticator: JwtAuthenticator = JwtAuthenticator()
 
   // formats for unmarshalling and marshalling
   implicit val createGroupFormat = jsonFormat2(CrateGroupRequest)
@@ -32,7 +32,7 @@ class GroupConsumer(val database: MongoDatabase, prodeService: ProdeService) {
   implicit val groupFormat = jsonFormat3(Group)
 
 
-  val route = cors() {
+  val route: Route = cors() {
     pathPrefix("group") {
       Route.seal {
         authenticateOAuth2(realm = "secure route", jwtAuthenticator.authenticate) { token =>
