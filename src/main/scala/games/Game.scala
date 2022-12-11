@@ -6,7 +6,7 @@ abstract class Game(team1: String, team2: String, result1: Long, result2: Long, 
 
   def teams: (String, String) = (team1, team2)
   def sameGame(other: Game): Boolean = {
-    teams == other.teams
+    teams == other.teams || teams.swap == other.teams
   }
   def result: (Long, Long) = (result1, result2)
   def winner: Long = {
