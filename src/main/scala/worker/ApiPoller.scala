@@ -55,7 +55,7 @@ object ApiPoller {
       method = HttpMethods.POST,
       uri = "http://api.cup2022.ir/api/v1/bydate",
 //      entity = HttpEntity(ContentTypes.`application/json`, s"{\"date\": \"${date.getMonthValue}/${date.getDayOfMonth}/${date.getYear}\"}"),
-      entity = HttpEntity(ContentTypes.`application/json`, s"{\"date\": \"12/10/2022\"}"),
+      entity = HttpEntity(ContentTypes.`application/json`, s"{\"date\": \"12/9/2022\"}"),
       headers = List(RawHeader.create("Authorization", s"Bearer ${sys.env("API_TOKEN")}"))
     )
 

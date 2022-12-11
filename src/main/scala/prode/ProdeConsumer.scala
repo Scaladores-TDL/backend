@@ -140,7 +140,7 @@ class ProdeConsumer(private val prodeService: ProdeService, private val groupSer
   }
 }
 object ProdeConsumer {
-  def apply(database: MongoDatabase, groupService: GroupService): ProdeConsumer = {
-    new ProdeConsumer(database, groupService)
+  def apply(prodeService: ProdeService, groupService: GroupService): ProdeConsumer = {
+    new ProdeConsumer(prodeService, groupService)
   }
 }
