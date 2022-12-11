@@ -3,7 +3,7 @@ package prode
 import games.{CompleteGame, Game, GroupStage, Statistics}
 import group.{Group, GroupService}
 import org.bson.conversions.Bson
-import org.mongodb.scala.MongoCollection
+import org.mongodb.scala.{MongoCollection, MongoDatabase}
 import org.mongodb.scala.model.Filters
 import org.mongodb.scala.result.{DeleteResult, UpdateResult}
 
@@ -11,7 +11,8 @@ import scala.concurrent.Future
 // the following is equivalent to `implicit val ec = ExecutionContext.global`
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class ProdeService(val prodesCollection: MongoCollection[Prode], val groupService: GroupService) {
+class ProdeService(val database: MongoDatabase, private val groupService: GroupService) {
+  val prodesCollection: MongoCollection[Prode] = database.getCollection("prodes")
 
   def find(filters: Bson = Filters.empty()): Future[Seq[Prode]] = {
     prodesCollection.find(filters).toFuture()

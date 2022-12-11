@@ -16,10 +16,7 @@ import spray.json.DefaultJsonProtocol._
 import java.util.NoSuchElementException
 import scala.util.{Failure, Success}
 
-class ProdeConsumer(val database: MongoDatabase, val groupService: GroupService) {
-
-  val prodesCollection: MongoCollection[Prode] = database.getCollection("prodes")
-  val prodeService = new ProdeService(prodesCollection, groupService)
+class ProdeConsumer(private val prodeService: ProdeService, private val groupService: GroupService) {
   val jwtAuthenticator: JwtAuthenticator = JwtAuthenticator()
 
   // formats for unmarshalling and marshalling
@@ -143,7 +140,7 @@ class ProdeConsumer(val database: MongoDatabase, val groupService: GroupService)
   }
 }
 object ProdeConsumer {
-  def apply(database: MongoDatabase, groupService: GroupService): ProdeConsumer = {
-    new ProdeConsumer(database, groupService)
+  def apply(prodeService: ProdeService, groupService: GroupService): ProdeConsumer = {
+    new ProdeConsumer(prodeService, groupService)
   }
 }
