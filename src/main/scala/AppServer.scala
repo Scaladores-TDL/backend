@@ -9,6 +9,7 @@ import jwt.SessionConsumer
 import org.bson.codecs.configuration.CodecRegistries.{fromProviders, fromRegistries}
 import org.mongodb.scala.{MongoClient, MongoCollection}
 import org.mongodb.scala.bson.codecs.Macros._
+import worker.{ApiPoller, ResultUpdater}
 import prode.{Prode, ProdeConsumer, ProdeService}
 
 import scala.io.StdIn

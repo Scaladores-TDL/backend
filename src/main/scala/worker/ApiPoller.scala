@@ -1,11 +1,15 @@
+package worker
+
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ActorRef, Behavior}
+import akka.http.javadsl.model.headers.RawHeader
 import akka.http.scaladsl.Http
-import akka.http.scaladsl.model.{HttpRequest, HttpResponse, StatusCodes}
+import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
+import akka.http.scaladsl.model._
 import akka.http.scaladsl.unmarshalling.Unmarshal
-import akka.stream.ActorMaterializer
-import akka.util.ByteString
+import spray.json.DefaultJsonProtocol._
 
+import java.time.LocalDate
 import scala.concurrent.Await
 import scala.concurrent.duration._
 import scala.util.{Failure, Success}
@@ -15,6 +19,9 @@ object ApiPoller {
 
   sealed trait Command
   final private case class Poll() extends Command
+
+  implicit val apiMatchFormat = jsonFormat(ApiTypes.ApiMatch, "home_team_en", "away_team_en", "home_score", "away_score")
+  implicit val apiResponseFormat = jsonFormat2(ApiTypes.ApiResponse)
 
   private case object TimerKey
 
@@ -41,20 +48,29 @@ object ApiPoller {
 
     ctx.log.info("Polling...")
 
-    val responseFuture = Http(ctx.system).singleRequest(
-      HttpRequest(
-        uri = "https://akka.io"
-      )
+    val date = LocalDate.now
+
+    val request = HttpRequest(
+      method = HttpMethods.POST,
+      uri = "http://api.cup2022.ir/api/v1/bydate",
+//      entity = HttpEntity(ContentTypes.`application/json`, s"{\"date\": \"${date.getMonthValue}/${date.getDayOfMonth}/${date.getYear}\"}"),
+      entity = HttpEntity(ContentTypes.`application/json`, s"{\"date\": \"12/10/2022\"}"),
+      headers = List(RawHeader.create("Authorization", s"Bearer ${sys.env("API_TOKEN")}"))
     )
+
+    val responseFuture = Http(ctx.system).singleRequest(request)
 
     responseFuture.onComplete {
       case Success(res) => res match {
         case HttpResponse(StatusCodes.OK, headers, entity, _) =>
-          val content = Await.result(Unmarshal(entity).to[String], 1.minute)
-          updater ! ResultUpdater.MatchResult(content.substring(0, 20))
+//          val raw = Await.result(Unmarshal(entity).to[String], 1.minute)
+//          println(s"Raw: $raw")
+
+          val content = Await.result(Unmarshal(entity).to[ApiTypes.ApiResponse], 1.minute)
+          content.data.foreach { m => updater ! ResultUpdater.MatchResult(m) }
         case resp@HttpResponse(code, _, _, _) =>
           resp.discardEntityBytes()
-          ctx.log.info("Request failed, response code: " + code)
+          println("Request failed, response code: " + code)
       }
       case Failure(msg) => ctx.log.info("Request failed, error:" + msg.getMessage)
     }
