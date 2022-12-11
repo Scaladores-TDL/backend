@@ -10,6 +10,7 @@ object ResultUpdater {
 
   def apply(prodeService: ProdeService): Behavior[Message] = Behaviors.setup { ctx =>
     ctx.log.info("Set up ResultUpdater")
+
     Behaviors.receiveMessage[Message] {
       case MatchResult(result: ApiTypes.ApiMatch) if result.state == "finished" =>
         result.matchType match {
