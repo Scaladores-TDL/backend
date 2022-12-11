@@ -10,15 +10,32 @@ object ResultUpdater {
 
   def apply(prodeService: ProdeService): Behavior[Message] = Behaviors.setup { ctx =>
     ctx.log.info("Set up ResultUpdater")
-    Behaviors.receiveMessage[Message] { msg =>
-      msg match {
-        case MatchResult(result: ApiTypes.ApiMatch) => {
-          ctx.log.info("Received message!")
-          ctx.log.info(s"${result.homeTeam} (${result.homeScore}) vs ${result.awayTeam} (${result.awayScore})")
-//          prodeService.simulateStageGame()
-          Behaviors.same
+    Behaviors.receiveMessage[Message] {
+      case MatchResult(result: ApiTypes.ApiMatch) if result.state == "finished" => {
+        ctx.log.info(s"Received ${result.matchType} match: ${result.homeTeam} (${result.homeScore}) vs ${result.awayTeam} (${result.awayScore})")
+
+        result.matchType match {
+          case "group" => prodeService.simulateStageGame(mapToStageGame(result))
+          case "R16" | "QR" | "semi" => prodeService.simulateMatch(mapToCompleteGame(result))
+          case "final" => prodeService.simulateFinal(mapToCompleteGame(result))
         }
+
+        Behaviors.same
       }
     }
+  }
+
+  def mapToStageGame(result: ApiTypes.ApiMatch): games.GroupStage = {
+    games.GroupStage(
+      team1 = result.homeTeam, team2 = result.awayTeam, result1 = result.homeScore, result2 = result.awayScore
+    )
+  }
+
+  def mapToCompleteGame(result: ApiTypes.ApiMatch): games.CompleteGame = {
+    // todo: extract penalties results from scorers
+    games.CompleteGame(
+      team1 = result.homeTeam, team2 = result.awayTeam, result1 = result.homeScore, result2 = result.awayScore,
+      penalties1 = 0, penalties2 = 0
+    )
   }
 }

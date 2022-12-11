@@ -15,12 +15,13 @@ import scala.concurrent.duration._
 import scala.util.{Failure, Success}
 
 object ApiPoller {
-  val INTERVAL = 5.seconds
+  val INTERVAL = 30.seconds
 
   sealed trait Command
   final private case class Poll() extends Command
 
-  implicit val apiMatchFormat = jsonFormat(ApiTypes.ApiMatch, "home_team_en", "away_team_en", "home_score", "away_score")
+  implicit val apiMatchFormat = jsonFormat(ApiTypes.ApiMatch, "home_team_en", "away_team_en",
+    "home_score", "away_score", "home_scorers", "away_scorers", "type", "time_elapsed")
   implicit val apiResponseFormat = jsonFormat2(ApiTypes.ApiResponse)
 
   private case object TimerKey
@@ -63,9 +64,6 @@ object ApiPoller {
     responseFuture.onComplete {
       case Success(res) => res match {
         case HttpResponse(StatusCodes.OK, headers, entity, _) =>
-//          val raw = Await.result(Unmarshal(entity).to[String], 1.minute)
-//          println(s"Raw: $raw")
-
           val content = Await.result(Unmarshal(entity).to[ApiTypes.ApiResponse], 1.minute)
           content.data.foreach { m => updater ! ResultUpdater.MatchResult(m) }
         case resp@HttpResponse(code, _, _, _) =>
