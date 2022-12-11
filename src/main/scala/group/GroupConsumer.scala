@@ -18,9 +18,7 @@ import jwt.JwtAuthenticator
 
 import java.util.NoSuchElementException
 
-class GroupConsumer(val database: MongoDatabase) {
-  val groupsCollection: MongoCollection[Group] = database.getCollection("groups")
-  val groupService = new GroupService(groupsCollection)
+class GroupConsumer(private val groupService: GroupService) {
   val jwtAuthenticator: JwtAuthenticator = JwtAuthenticator()
 
   // formats for unmarshalling and marshalling

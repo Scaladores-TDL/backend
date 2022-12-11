@@ -4,12 +4,12 @@ import akka.http.scaladsl.Http
 import akka.http.scaladsl.Http.ServerBinding
 import akka.http.scaladsl.server.Directives._
 import games.{CompleteGame, GroupStage, Statistics}
-import group.{Group, GroupConsumer}
+import group.{Group, GroupConsumer, GroupService}
 import jwt.SessionConsumer
 import org.bson.codecs.configuration.CodecRegistries.{fromProviders, fromRegistries}
-import org.mongodb.scala.MongoClient
+import org.mongodb.scala.{MongoClient, MongoCollection}
 import org.mongodb.scala.bson.codecs.Macros._
-import prode.{Prode, ProdeConsumer}
+import prode.{Prode, ProdeConsumer, ProdeService}
 
 import scala.io.StdIn
 import scala.util.{Failure, Success}
@@ -31,11 +31,14 @@ object AppServer {
     )
     val database = client.getDatabase("prodes").withCodecRegistry(codecRegistry)
 
-    val groupConsumer = new GroupConsumer(database)
-    val prodeConsumer = new ProdeConsumer(database, groupConsumer.groupService)
+    val groupService = new GroupService(database)
+    val prodeService = new ProdeService(database, groupService)
+
+    val groupConsumer = new GroupConsumer(groupService)
+    val prodeConsumer = new ProdeConsumer(prodeService, groupService)
     val sessionConsumer = new SessionConsumer()
 
-    val resultUpdater = ctx.spawn(ResultUpdater(), "ResultUpdater")
+    val resultUpdater = ctx.spawn(ResultUpdater(prodeService), "ResultUpdater")
     val apiPoller = ctx.spawn(ApiPoller(resultUpdater), "Poller")
 
     val bindingFuture = Http().newServerAt("localhost", 8080)

@@ -28,11 +28,9 @@ object ApiPoller {
   }
 
   def listen(updater: ActorRef[ResultUpdater.Message]): Behavior[Command] = Behaviors.setup { ctx =>
-    Behaviors.receiveMessage[Command] { message =>
-      message match {
-        case Poll() => {
-          poll(updater)
-        }
+    Behaviors.receiveMessage[Command] {
+      case Poll() => {
+        poll(updater)
       }
     }
   }

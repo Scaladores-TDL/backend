@@ -1,7 +1,7 @@
 package group
 
 import org.bson.conversions.Bson
-import org.mongodb.scala.MongoCollection
+import org.mongodb.scala.{MongoCollection, MongoDatabase}
 import org.mongodb.scala.model.Filters
 import org.mongodb.scala.result.{DeleteResult, InsertOneResult}
 import prode.ProdeService
@@ -10,7 +10,8 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 
-class GroupService(val groupCollection: MongoCollection[Group]) {
+class GroupService(val database: MongoDatabase) {
+  val groupCollection: MongoCollection[Group] = database.getCollection("groups")
 
   def findGroups(filters: Bson = Filters.empty()): Future[Seq[Group]] = {
     groupCollection.find(filters).toFuture()

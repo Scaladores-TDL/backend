@@ -13,7 +13,7 @@ object ResultUpdater {
         case MatchResult(content: String) => {
           ctx.log.info("Received message!")
           ctx.log.info(s"Content ${content.toString}")
-          prodeService.simulateStageGame()
+//          prodeService.simulateStageGame()
           Behaviors.same
         }
       }
