@@ -35,6 +35,9 @@ object AppServer {
     val prodeConsumer = new ProdeConsumer(database, groupConsumer.groupService)
     val sessionConsumer = new SessionConsumer()
 
+    val resultUpdater = ctx.spawn(ResultUpdater(), "ResultUpdater")
+    val apiPoller = ctx.spawn(ApiPoller(resultUpdater), "Poller")
+
     val bindingFuture = Http().newServerAt("localhost", 8080)
       .bind(concat(prodeConsumer.route, groupConsumer.route, sessionConsumer.route))
 
