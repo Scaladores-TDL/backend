@@ -22,12 +22,14 @@ object ResultUpdater {
 
         Behaviors.same
       }
+      case _ => Behaviors.same
     }
   }
 
   def mapToStageGame(result: ApiTypes.ApiMatch): games.GroupStage = {
     games.GroupStage(
-      team1 = result.homeTeam, team2 = result.awayTeam, result1 = result.homeScore, result2 = result.awayScore
+      team1 = result.homeTeam, team2 = result.awayTeam, result1 = result.homeScore, result2 = result.awayScore,
+      finished = false
     )
   }
 
