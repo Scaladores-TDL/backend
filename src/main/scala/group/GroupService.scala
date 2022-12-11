@@ -17,7 +17,7 @@ class GroupService(val groupCollection: MongoCollection[Group]) {
   }
 
   def create(request: CrateGroupRequest): Future[InsertOneResult] = {
-    val group = Group(request._id, request.name, List())
+    val group = Group(request._id, request.name)
     groupCollection.insertOne(group).toFuture()
   }
 

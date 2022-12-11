@@ -25,11 +25,7 @@ class GroupConsumer(val database: MongoDatabase) {
 
   // formats for unmarshalling and marshalling
   implicit val createGroupFormat = jsonFormat2(CrateGroupRequest)
-  implicit val groupStageFormat = jsonFormat4(GroupStage)
-  implicit val octaveFinalFromat = jsonFormat6(CompleteGame)
-  implicit val statisticsFormat = jsonFormat3(Statistics)
-  implicit val prodeFormat = jsonFormat7(Prode)
-  implicit val groupFormat = jsonFormat3(Group)
+  implicit val groupFormat = jsonFormat2(Group)
 
 
   val route: Route = cors() {

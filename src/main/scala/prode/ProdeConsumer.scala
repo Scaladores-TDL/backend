@@ -23,8 +23,8 @@ class ProdeConsumer(val database: MongoDatabase, val groupService: GroupService)
   val jwtAuthenticator: JwtAuthenticator = JwtAuthenticator()
 
   // formats for unmarshalling and marshalling
-  implicit val groupStageFormat = jsonFormat4(GroupStage)
-  implicit val octaveFinalFromat = jsonFormat6(CompleteGame)
+  implicit val groupStageFormat = jsonFormat5(GroupStage)
+  implicit val octaveFinalFromat = jsonFormat7(CompleteGame)
   implicit val createprodeFormat = jsonFormat6(CreateProdeRequest)
   implicit val statisticsFormat = jsonFormat3(Statistics)
   implicit val prodeFormat = jsonFormat7(Prode)
@@ -108,7 +108,7 @@ class ProdeConsumer(val database: MongoDatabase, val groupService: GroupService)
                     game => {
                       val f = prodeService.simulateFinal(game)
                       onComplete(f) {
-                        case Success(_) => complete("Simulation octave final game completed succesfully")
+                        case Success(_) => complete("Simulation final game completed succesfully")
                         case Failure(e) => {
                           println(e)
                           complete(StatusCodes.InternalServerError)
@@ -140,5 +140,10 @@ class ProdeConsumer(val database: MongoDatabase, val groupService: GroupService)
         }
       }
     }
+  }
+}
+object ProdeConsumer {
+  def apply(database: MongoDatabase, groupService: GroupService): ProdeConsumer = {
+    new ProdeConsumer(database, groupService)
   }
 }

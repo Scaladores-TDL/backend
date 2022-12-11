@@ -1,6 +1,6 @@
 package games
 
-case class CompleteGame(team1: String, team2: String, result1: Long, result2: Long, penalties1: Long, penalties2: Long) extends Game(team1, team2, result1, result2) {
+case class CompleteGame(team1: String, team2: String, result1: Long, result2: Long, penalties1: Long, penalties2: Long, finished: Boolean) extends Game(team1, team2, result1, result2, finished) {
   require(if (result1 == result2) { penalties1 != penalties2 } else true )
 
   def tie: Boolean = result1 == result2

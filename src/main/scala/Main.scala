@@ -27,13 +27,13 @@ object Main {
      val database = client.getDatabase("prodes").withCodecRegistry(codecRegistry)
 
      val groupConsumer = new GroupConsumer(database)
-     val prodeConsumer = new ProdeConsumer(database,groupConsumer.groupService)
+     val prodeConsumer = ProdeConsumer(database,groupConsumer.groupService)
      val sessionConsumer = new SessionConsumer()
 
      val bindingFuture = Http().newServerAt("localhost", 8080)
        .bind(concat(prodeConsumer.route, groupConsumer.route, sessionConsumer.route))
 
-     println(s"Server now online. Please navigate to http://localhost:8080/hello\nPress RETURN to stop...")
+     println(s"Server now online. Please navigate to http://localhost:8080\nPress RETURN to stop...")
      StdIn.readLine() // let it run until user presses return
      bindingFuture
        .flatMap(_.unbind()) // trigger unbinding from the port

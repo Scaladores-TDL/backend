@@ -1,6 +1,6 @@
 package games
 
-abstract class Game(team1: String, team2: String, result1: Long, result2: Long) {
+abstract class Game(team1: String, team2: String, result1: Long, result2: Long, finished: Boolean) {
   require(result1 >= 0, "result must be grather than 0")
   require(result2 >= 0, "result must be grather than 0")
 
