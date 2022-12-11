@@ -21,7 +21,7 @@ object ResultUpdater {
         }
 
         Behaviors.same
-      }
+      case _ => Behaviors.same
     }
   }
 
