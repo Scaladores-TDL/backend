@@ -2,24 +2,55 @@ package worker
 
 import akka.actor.typed.Behavior
 import akka.actor.typed.scaladsl.Behaviors
+
+import scala.concurrent.duration._
 import prode.ProdeService
 
+import scala.concurrent.Await
+
 object ResultUpdater {
+  val INTERVAL = 25.seconds
+
   sealed trait Message
   final case class MatchResult(result: ApiTypes.ApiMatch) extends Message
+
+  final case class Flush() extends Message
 
   def apply(prodeService: ProdeService): Behavior[Message] = Behaviors.setup { ctx =>
     ctx.log.info("Set up ResultUpdater")
 
+    Behaviors.withTimers(timers => {
+      timers.startTimerAtFixedRate(Flush(), INTERVAL)
+
+      active(prodeService, List.empty)
+    })
+  }
+
+  def active(prodeService: ProdeService, results: List[ApiTypes.ApiMatch]): Behavior[Message] = {
     Behaviors.receiveMessage[Message] {
       case MatchResult(result: ApiTypes.ApiMatch) if result.state == "finished" =>
-        result.matchType match {
-          case "group" => prodeService.simulateStageGame(mapToStageGame(result))
-          case "R16" | "QR" | "semi" => prodeService.simulateMatch(mapToCompleteGame(result))
-          case "final" => prodeService.simulateFinal(mapToCompleteGame(result))
-        }
-        Behaviors.same
+//        println(s"Accumulate result ${result.title}")
+        active(prodeService, results :+ result)
+
+      case Flush() =>
+        println("Flush results!")
+        flushResults(prodeService, results)
+        active(prodeService, List.empty)
+
       case _ => Behaviors.same
+    }
+  }
+
+  def flushResults(prodeService: ProdeService, results: List[ApiTypes.ApiMatch]) = {
+    results.foreach { result =>
+//      println(s"Processing ${result.title}")
+      val future = result.matchType match {
+        case "group" => prodeService.simulateStageGame(mapToStageGame(result))
+        case "R16" | "QR" | "semi" => prodeService.simulateMatch(mapToCompleteGame(result))
+        case "final" => prodeService.simulateFinal(mapToCompleteGame(result))
+      }
+      Await.result(future, 1.minute)
+//      println(s"${result.title} done")
     }
   }
 

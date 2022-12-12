@@ -44,7 +44,6 @@ case class CompleteGame(team1: String, team2: String, result1: Long, result2: Lo
     }
 
     if (teamWinner(this) == teamWinner(other)) {
-      println("final winner is correct")
       return Statistics(10, 1, 0)
     }
     Statistics(0,0,0)

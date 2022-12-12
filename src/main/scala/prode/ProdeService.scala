@@ -65,7 +65,9 @@ class ProdeService(val database: MongoDatabase, private val groupService: GroupS
     this.find().map(prodes => {
       prodes.foreach(prode => {
         val prodeUpdated = simulation(prode)
-        prodesCollection.replaceOne(Filters.eq("_id", prodeUpdated._id), prodeUpdated).subscribe((updateResult: UpdateResult) => println(updateResult))
+        prodesCollection
+          .replaceOne(Filters.eq("_id", prodeUpdated._id), prodeUpdated)
+          .toFuture()
       })
     })
   }

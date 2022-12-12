@@ -15,7 +15,7 @@ import scala.concurrent.duration._
 import scala.util.{Failure, Success}
 
 object ApiPoller {
-  val INTERVAL = 15.seconds
+  val INTERVAL = 20.seconds
 
   sealed trait Command
   final private case class Poll() extends Command
